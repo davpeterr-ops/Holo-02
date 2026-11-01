@@ -1,3 +1,4 @@
+
 pluginManagement {
     repositories {
         google()
@@ -14,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "HOLO-01"
+rootProject.name = "HOLO-02"
 include(":app")
