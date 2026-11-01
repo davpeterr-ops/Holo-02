@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#050914">
+<meta name="description" content="HOLO-01 touchless gesture-control web prototype">
+<title>HOLO-01 | Touchless Interface Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#050914;--panel:#0b1728;--line:#1b405c;--cyan:#71eaff;--blue:#278dff;--violet:#9c86ff;--muted:#91a9bf;--white:#effaff;--good:#6df0bd;--warn:#ffc979}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--white);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body{min-height:100svh;background:radial-gradient(ellipse at 50% 30%,#112b49 0%,#071222 44%,#03060d 100%);overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:1px solid #28516e;background:#10243a;border-radius:12px;padding:11px 14px;touch-action:manipulation}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:linear-gradient(135deg,#075c7b,#123e69);border-color:#4acdec;box-shadow:0 0 22px #18bce52b}
+button:active{transform:scale(.98)}
+.top{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-bottom:1px solid #153149;background:#050b16e8;position:sticky;top:0;z-index:20}
+.brand{font-weight:900;letter-spacing:.13em;font-size:17px}.brand span{color:var(--cyan)}
+.status{font-size:9px;letter-spacing:.12em;color:var(--cyan);border:1px solid #1b5268;padding:7px 9px;border-radius:99px}
+main{max-width:1120px;margin:auto;padding:12px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px}
+.panel{border:1px solid #163a53;border-radius:17px;background:linear-gradient(155deg,#0b1b2de8,#07101eef);box-shadow:0 18px 50px #0006;overflow:hidden}
+.stage-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #153149}
+.eyebrow,.small{font-size:9px;letter-spacing:.15em;color:var(--cyan);font-weight:750}
+.stage{height:min(70vh,680px);min-height:470px;position:relative;overflow:hidden;perspective:1100px;isolation:isolate;background:radial-gradient(ellipse at 50% 48%,#10365a8a,transparent 48%),linear-gradient(180deg,#050b16,#030711)}
+.stage:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#1d80b018 1px,transparent 1px),linear-gradient(90deg,#1d80b018 1px,transparent 1px);background-size:38px 38px;mask-image:radial-gradient(ellipse at center,#000 10%,transparent 78%);transform:perspective(600px) rotateX(58deg) scale(1.8) translateY(20%);transform-origin:center bottom}
+.stage:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,#02050bd9 100%);pointer-events:none;z-index:8}
+.stage-label{position:absolute;left:14px;top:13px;z-index:10;font-size:9px;letter-spacing:.13em;color:#8ba9c4}
+.scene{position:absolute;inset:0;display:grid;place-items:center;transform-style:preserve-3d;z-index:2}
+.core-wrap{width:210px;height:210px;position:relative;transform-style:preserve-3d;animation:float 5s ease-in-out infinite;z-index:4}
+.core{position:absolute;inset:13%;border-radius:50%;background:radial-gradient(circle at 34% 28%,#e8fdff 0%,#67e7ff 5%,#168ac7 19%,#0b3b76 42%,#07152f 68%,#020711 78%);box-shadow:inset -18px -20px 35px #02040d,inset 8px 8px 24px #c8fbff9c,0 0 25px #24c9ff9c,0 0 75px #0878ff70;transform:translateZ(30px)}
+.orbit{position:absolute;inset:-5%;border:1px solid #72eaff9c;border-radius:50%;transform:rotateX(72deg) rotateZ(22deg);box-shadow:0 0 16px #26cfff54;animation:spin 12s linear infinite}
+.orbit.two{inset:-19%;transform:rotateX(65deg) rotateY(-28deg);border-color:#a18aff88;animation-duration:17s;animation-direction:reverse}
+.orbit.three{inset:-34%;transform:rotateY(74deg) rotateX(20deg);border-color:#3f9cff66;animation-duration:23s}
+.core-caption{position:absolute;top:calc(100% + 27px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:9px;letter-spacing:.2em;color:#a9eaff;text-shadow:0 0 14px #29cfff}
+.app-card{position:absolute;z-index:5;width:clamp(115px,20vw,170px);min-height:82px;padding:12px;border:1px solid #3ba9d1b0;border-radius:13px;background:linear-gradient(145deg,#0c2942ed,#081322f2);box-shadow:0 0 24px #18b9e52b,inset 0 0 18px #43cfff0c;backdrop-filter:blur(8px);transform-style:preserve-3d;transition:transform .25s,border-color .2s,opacity .25s}
+.app-card strong{display:block;font-size:12px;margin-top:7px}.app-card small{font-size:8px;color:#78b6d4;letter-spacing:.1em}
+.app-card.selected{border-color:#c0f8ff;box-shadow:0 0 28px #27d9ff8a}
+.a1{left:6%;top:22%;transform:rotateY(18deg) rotateX(8deg) translateZ(35px)}
+.a2{right:6%;top:24%;transform:rotateY(-18deg) rotateX(8deg) translateZ(45px)}
+.a3{left:8%;bottom:16%;transform:rotateY(16deg) rotateX(-8deg) translateZ(25px)}
+.a4{right:8%;bottom:15%;transform:rotateY(-16deg) rotateX(-8deg) translateZ(40px)}
+.hud{position:absolute;bottom:12px;left:14px;right:14px;display:flex;justify-content:space-between;gap:8px;z-index:10;color:#7298b5;font-size:8px;letter-spacing:.1em}
+#handCursor{position:absolute;width:20px;height:20px;border:2px solid #7ff4ff;border-radius:50%;box-shadow:0 0 16px #29cfff;display:none;pointer-events:none;z-index:12;transform:translate(-50%,-50%)}
+.stage.inactive .scene{opacity:.15;filter:blur(3px)}
+.stage.inactive .app-card{pointer-events:none}
+.stage.inactive .core-wrap{opacity:.3}
+.stage.inactive .welcome{display:grid}
+.welcome{display:none;position:absolute;inset:0;z-index:7;place-items:center;text-align:center;background:#03091588;backdrop-filter:blur(3px)}
+.welcome div{border:1px solid #3a8eac;border-radius:18px;padding:24px 28px;background:#071729dd;box-shadow:0 0 50px #24cfff30}
+.welcome b{display:block;color:var(--cyan);font-size:23px;letter-spacing:.15em}.welcome span{display:block;margin-top:9px;font-size:12px;color:#e8faff}
+.actions{display:flex;gap:8px;flex-wrap:wrap;padding:11px 13px;border-top:1px solid #153149}
+.actions button{flex:1;min-width:95px;font-size:11px}
+.side{display:flex;flex-direction:column;gap:11px}
+.side-panel{padding:13px}
+.side-title{font-size:9px;letter-spacing:.14em;color:var(--cyan);margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.muted{color:var(--muted);font-size:11px;line-height:1.55}
+.camera-box{height:165px;background:#02060c;border:1px solid #173b54;border-radius:12px;overflow:hidden;position:relative;margin:10px 0}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.cam-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#7192aa;font-size:11px;padding:10px}
+.meter{height:5px;background:#13283c;border-radius:9px;overflow:hidden;margin:8px 0}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1b94ce,#7ff4ff);transition:width .12s}
+.tag{font-size:9px;letter-spacing:.08em;color:var(--good)}
+.log{font-size:10px;color:#a9c2d5;line-height:1.5;min-height:30px}
+.guide{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.guide div{border:1px solid #1d4059;border-radius:10px;padding:9px;background:#091827}
+.guide b{display:block;font-size:10px;color:#e8faff}.guide span{font-size:9px;color:#91a9bf}
+footer{text-align:center;color:#617e96;font-size:9px;padding:0 12px 18px;letter-spacing:.05em;line-height:1.5}
+@keyframes float{0%,100%{transform:translateY(0) rotateZ(-4deg)}50%{transform:translateY(-12px) rotateZ(4deg)}}
+@keyframes spin{to{transform:rotateX(72deg) rotateY(18deg) rotateZ(360deg)}}
+@media(max-width:850px){main{grid-template-columns:1fr;padding:9px;gap:9px}.stage{height:57vh;min-height:430px}.side{display:grid;grid-template-columns:1fr 1fr}.camera-panel{grid-column:1/-1}.core-wrap{width:170px;height:170px}.app-card{width:116px;min-height:72px;padding:9px}.a1{left:2%;top:18%}.a2{right:2%;top:20%}.a3{left:3%;bottom:14%}.a4{right:3%;bottom:13%}}
+@media(max-width:480px){.side{grid-template-columns:1fr}.stage{min-height:420px}.core-wrap{width:145px;height:145px}.app-card{width:105px;min-height:66px}.app-card strong{font-size:10px}.app-card small{font-size:7px}.a1{left:1%;top:18%}.a2{right:1%;top:20%}.a3{left:2%;bottom:13%}.a4{right:2%;bottom:12%}.hud{font-size:7px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">HOLO<span>.01</span></div><div class="status" id="systemStatus">SYSTEM STANDBY</div></header>
+<main>
+<section class="panel">
+  <div class="stage-head"><div><div class="eyebrow">TOUCHLESS CONTROL / WEB TEST</div><div style="font-size:13px;font-weight:700;margin-top:3px">HOLO spatial workspace</div></div><button id="fullscreenBtn">⛶ FULLSCREEN</button></div>
+  <div class="stage inactive" id="stage">
+    <div class="stage-label">HOLO.01 / SPATIAL MODE</div>
+    <div class="scene" id="scene">
+      <div class="core-wrap"><div class="orbit"></div><div class="orbit two"></div><div class="orbit three"></div><div class="core"></div><div class="core-caption">HOLO CORE · ONLINE</div></div>
+      <div class="app-card a1" data-app="ChatGPT"><small>APP 01 / ASSISTANT</small><strong>ChatGPT</strong></div>
+      <div class="app-card a2" data-app="WhatsApp"><small>APP 02 / MESSAGES</small><strong>WhatsApp</strong></div>
+      <div class="app-card a3" data-app="Browser"><small>APP 03 / WEB</small><strong>Browser</strong></div>
+      <div class="app-card a4" data-app="Settings"><small>APP 04 / DEVICE</small><strong>Settings</strong></div>
+    </div>
+    <div class="welcome"><div><b>HOLO.01</b><span>WELCOME, HOLO.</span><span class="muted">Gesture interface activated</span></div></div>
+    <div id="handCursor"></div>
+    <div class="hud"><span id="gestureLabel">GESTURE SENSOR: STANDBY</span><span id="pageLabel">WORKSPACE 01 / 04</span></div>
+  </div>
+  <div class="actions">
+    <button class="primary" id="activateBtn">ACTIVATE HOLO</button>
+    <button id="hideBtn">HOLO OFF</button>
+    <button id="resetBtn">RESET</button>
+  </div>
+</section>
+<aside class="side">
+  <section class="panel side-panel camera-panel">
+    <div class="row"><div class="side-title" style="margin:0">01 / CAMERA SENSOR</div><span class="tag" id="cameraStatus">OFFLINE</span></div>
+    <div class="camera-box"><video id="camera" autoplay muted playsinline></video><div class="cam-placeholder" id="cameraPlaceholder">Front camera preview<br>starts after permission</div></div>
+    <div class="row"><button class="primary" id="cameraBtn" style="flex:1">ENABLE CAMERA</button><button id="stopBtn">STOP</button></div>
+    <div class="meter"><i id="trackingMeter"></i></div>
+    <p class="muted" id="cameraMessage">Camera works only while this website is open and active. Use good lighting and keep one hand in view.</p>
+  </section>
+  <section class="panel side-panel">
+    <div class="side-title">02 / VOICE ACTIVATION</div>
+    <button class="primary" id="voiceBtn" style="width:100%">🎙 ENABLE VOICE WAKE</button>
+    <p class="muted" id="voiceMessage">Tap once to grant microphone access. Say “HOLO” to activate. Browser support varies; the button always remains available.</p>
+  </section>
+  <section class="panel side-panel">
+    <div class="side-title">03 / GESTURE MAP</div>
+    <div class="guide">
+      <div><b>Open palm</b><span>Activate / unlock</span></div>
+      <div><b>Pinch</b><span>Select an app panel</span></div>
+      <div><b>Swipe left/right</b><span>Switch panels</span></div>
+      <div><b>Swipe down</b><span>Show quick panel demo</span></div>
+    </div>
+    <p class="muted" style="margin-bottom:0">Gestures are interpreted inside this web demo. They do not trigger Android's system navigation.</p>
+  </section>
+  <section class="panel side-panel">
+    <div class="side-title">04 / EVENT LOG</div><div class="log" id="eventLog">System ready. Enable the camera or use the activation button.</div>
+  </section>
+</aside>
+</main>
+<footer>HOLO.01 · WEB PROTOTYPE · CAMERA + GESTURE TEST · NOT A PHYSICAL HOLOGRAM OR ANDROID SYSTEM CONTROLLER</footer>
+<script type="module">
+const $=id=>document.getElementById(id);
+const stage=$("stage"), cards=[...document.querySelectorAll(".app-card")];
+let stream=null, handTask=null, raf=0, lastVideoTime=-1, lastX=null, lastSwipe=0, pinchDown=false, selected=0, active=false, voiceRec=null, voiceWanted=false, openPalmAt=0, lastOpenTrigger=0;
+function log(s){$("eventLog").textContent=s}
+function status(s){$("systemStatus").textContent=s}
+function announce(s){$("cameraMessage").textContent=s}
+function welcome(){stage.classList.remove("inactive");active=true;status("HOLO ACTIVE");$("gestureLabel").textContent="GESTURE SENSOR: ACTIVE";log("HOLO activated. Welcome, HOLO.");speak("Welcome, HOLO.");}
+function deactivate(){stage.classList.add("inactive");active=false;status("SYSTEM STANDBY");$("gestureLabel").textContent="GESTURE SENSOR: STANDBY";log("HOLO returned to standby.");}
+function speak(s){if(!("speechSynthesis" in window))return;try{speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(s))}catch(e){}}
+function select(i){selected=(i+cards.length)%cards.length;cards.forEach((c,n)=>c.classList.toggle("selected",n===selected));$("pageLabel").textContent=`APP ${String(selected+1).padStart(2,"0")} / 04`;log(`${cards[selected].dataset.app} panel selected.`)}
+function swipe(dir){if(!active)welcome();if(dir==="left")select(selected+1);else if(dir==="right")select(selected-1);else if(dir==="down"){log("Quick panel gesture detected (web demonstration only).");$("gestureLabel").textContent="QUICK PANEL GESTURE";}else if(dir==="up"){deactivate();log("Home gesture detected (web demonstration only).");}}
+$("activateBtn").onclick=welcome;$("hideBtn").onclick=deactivate;$("resetBtn").onclick=()=>{select(0);deactivate();log("Demo reset.");};
+$("fullscreenBtn").onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){log("Fullscreen unavailable in this browser.")}};
+cards.forEach((c,i)=>c.addEventListener("click",()=>{welcome();select(i)}));
+select(0);
+async function startCamera(){
+ if(stream){log("Camera is already active.");return}
+ if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia){announce("Camera access requires HTTPS and a supported browser such as Chrome.");return}
+ $("cameraBtn").disabled=true;announce("Requesting camera permission…");
+ try{
+  const mp=await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+  const vision=await mp.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  handTask=await mp.HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"CPU"},runningMode:"VIDEO",numHands:1});
+  stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:"user",width:{ideal:640},height:{ideal:480}}});
+  const v=$("camera");v.srcObject=stream;await v.play();$("cameraPlaceholder").style.display="none";$("cameraStatus").textContent="CAMERA ON";$("cameraBtn").textContent="CAMERA ACTIVE";announce("Hand tracking ready. Open your palm to activate; pinch to select.");log("Camera and hand-tracking model are ready.");status("VISION READY");frame();
+ }catch(e){announce("Camera setup failed: "+(e?.message||e)+". Check permissions and internet connection.");log("Camera setup failed.");stopCamera()}
+ $("cameraBtn").disabled=false;
+}
+function stopCamera(){if(raf)cancelAnimationFrame(raf);raf=0;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;handTask=null;$("camera").srcObject=null;$("cameraPlaceholder").style.display="grid";$("cameraStatus").textContent="OFFLINE";$("cameraBtn").textContent="ENABLE CAMERA";$("trackingMeter").style.width="0%";$("handCursor").style.display="none";$("gestureLabel").textContent="GESTURE SENSOR: STANDBY";announce("Camera stopped. This website no longer tracks your hand.");log("Camera stopped.");}
+$("cameraBtn").onclick=startCamera;$("stopBtn").onclick=stopCamera;
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function frame(){
+ const v=$("camera");
+ if(!handTask||!stream){return}
+ if(v.readyState>=2&&v.currentTime!==lastVideoTime){
+  lastVideoTime=v.currentTime;
+  try{
+   const result=handTask.detectForVideo(v,performance.now());
+   if(result.landmarks?.length){
+    const lm=result.landmarks[0], index=lm[8], thumb=lm[4], wrist=lm[0], pinch=dist(index,thumb)<.055;
+    const cursor=$("handCursor"),box=stage.getBoundingClientRect(),x=(1-index.x)*box.width,y=index.y*box.height;
+    cursor.style.display="block";cursor.style.left=x+"px";cursor.style.top=y+"px";
+    $("trackingMeter").style.width=Math.min(100,Math.max(0,(1-dist(index,thumb)/.24)*100))+"%";
+    $("gestureLabel").textContent=pinch?"GESTURE: PINCH": "GESTURE: HAND TRACKED";
+    // Open palm: all four fingertips are sufficiently far from the wrist.
+    const open=[8,12,16,20].every(k=>dist(lm[k],wrist)>.23);
+    if(open){if(!openPalmAt)openPalmAt=performance.now();if(performance.now()-openPalmAt>1100&&performance.now()-lastOpenTrigger>1800){welcome();lastOpenTrigger=performance.now();log("Open palm recognized: HOLO activated.");}}
+    else openPalmAt=0;
+    // Pinch selects the app panel nearest the index fingertip.
+    if(pinch&&!pinchDown){let nearest=-1,best=Infinity;cards.forEach((c,i)=>{const r=c.getBoundingClientRect(),cx=(r.left+r.right)/2-box.left,cy=(r.top+r.bottom)/2-box.top,d=Math.hypot(cx-x,cy-y);if(d<best){best=d;nearest=i}});if(nearest>=0&&best<190){welcome();select(nearest);log("Pinch recognized: "+cards[nearest].dataset.app+" selected.");}}
+    pinchDown=pinch;
+    // Horizontal / vertical air-swipe detection using index fingertip movement.
+    const now=performance.now();
+    if(lastX&&now-lastX.t<260&&now-lastSwipe>650){
+      const dx=index.x-lastX.x,dy=index.y-lastX.y;
+      if(Math.abs(dx)>.22&&Math.abs(dx)>Math.abs(dy)*1.25){swipe(dx<0?"left":"right");lastSwipe=now;log("Air swipe "+(dx<0?"left":"right")+" recognized.");}
+      else if(Math.abs(dy)>.27&&Math.abs(dy)>Math.abs(dx)*1.3){swipe(dy>0?"down":"up");lastSwipe=now;}
+    }
+    lastX={x:index.x,y:index.y,t:now};
+   }else{$("handCursor").style.display="none";$("trackingMeter").style.width="0%";lastX=null;pinchDown=false;openPalmAt=0;$("gestureLabel").textContent="GESTURE: SEARCHING";}
+  }catch(e){announce("Tracking error: "+e.message);stopCamera();return}
+ }
+ raf=requestAnimationFrame(frame);
+}
+function startVoice(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){$("voiceMessage").textContent="This browser does not support continuous speech recognition. Use the HOLO activation button; camera gestures still work.";return}
+ if(voiceRec){voiceWanted=false;try{voiceRec.stop()}catch(e){}voiceRec=null;$("voiceBtn").textContent="🎙 ENABLE VOICE WAKE";return}
+ voiceWanted=true;const rec=new SR();voiceRec=rec;rec.lang="en-US";rec.continuous=true;rec.interimResults=true;
+ rec.onstart=()=>{$("voiceBtn").textContent="LISTENING — SAY HOLO";$("voiceMessage").textContent="Listening for the wake word “HOLO”. Keep this page open.";};
+ rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const heard=e.results[i][0].transcript.toLowerCase();if(e.results[i].isFinal&&(/\bholo\b/.test(heard)||heard.includes("hello holo"))){welcome();log("Voice wake word recognized: HOLO.");}}};
+ rec.onerror=e=>{$("voiceMessage").textContent="Voice recognition stopped: "+e.error+". Browser voice support varies.";};
+ rec.onend=()=>{voiceRec=null;if(voiceWanted){try{const next=new SR();voiceRec=next;next.lang="en-US";next.continuous=true;next.interimResults=true;next.onresult=rec.onresult;next.onerror=rec.onerror;next.onend=rec.onend;next.start()}catch(e){voiceWanted=false;$("voiceBtn").textContent="🎙 ENABLE VOICE WAKE"}}else{$("voiceBtn").textContent="🎙 ENABLE VOICE WAKE"}};
+ try{rec.start()}catch(e){voiceWanted=false;voiceRec=null;$("voiceMessage").textContent="Could not start voice recognition. Use the activation button instead."}
+}
+$("voiceBtn").onclick=startVoice;
+window.addEventListener("pagehide",()=>{stopCamera();if(voiceRec){voiceWanted=false;try{voiceRec.stop()}catch(e){}}});
+</script>
+</body>
+</html>
